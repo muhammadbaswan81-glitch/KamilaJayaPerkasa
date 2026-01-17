@@ -67,6 +67,7 @@ class DashboardManager {
                 <td>${product.name}</td>
                 <td><span class="product-category">${product.category}</span></td>
                 <td>${formatRupiah(product.price)}</td>
+                <td>${product.stock || 0}</td>
                 <td>${product.desc.substring(0, 50)}...</td>
                 <td>
                     <div class="table-actions">
@@ -136,6 +137,12 @@ class DashboardManager {
                                 <label for="product-price">Harga (Rp) *</label>
                                 <input type="number" id="product-price" class="form-control" 
                                        value="${product ? product.price : ''}" min="0" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="product-stock">Stok *</label>
+                                <input type="number" id="product-stock" class="form-control" 
+                                       value="${product ? (product.stock !== undefined ? product.stock : 20) : '20'}" min="0" required>
                             </div>
                         </div>
                         
@@ -241,15 +248,16 @@ class DashboardManager {
         const name = document.getElementById('product-name').value;
         const category = document.getElementById('product-category').value;
         const price = parseInt(document.getElementById('product-price').value);
+        const stock = parseInt(document.getElementById('product-stock').value || 0);
         const desc = document.getElementById('product-desc').value;
         const imageFile = document.getElementById('product-image-upload').files[0];
 
         // Validasi
         let errors = [];
         if (typeof validateForm === 'function') {
-            errors = validateForm({ name, category, price, desc });
+            errors = validateForm({ name, category, price, desc, stock });
         } else if (window.AppUtils && window.AppUtils.validateForm) {
-            errors = window.AppUtils.validateForm({ name, category, price, desc });
+            errors = window.AppUtils.validateForm({ name, category, price, desc, stock });
         }
 
         if (errors.length > 0) {
@@ -258,7 +266,7 @@ class DashboardManager {
         }
 
         const handleSave = (imageData) => {
-            this.completeSaveProduct(id, { name, category, price, desc, image: imageData });
+            this.completeSaveProduct(id, { name, category, price, stock, desc, image: imageData });
         };
 
         if (imageFile) {

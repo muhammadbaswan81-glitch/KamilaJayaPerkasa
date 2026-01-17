@@ -40,6 +40,10 @@ function validateForm(formData) {
         errors.push('Deskripsi harus diisi');
     }
 
+    if (formData.stock === undefined || formData.stock === null || formData.stock < 0) {
+        errors.push('Stok harus diisi dengan angka 0 atau lebih');
+    }
+
     return errors;
 }
 

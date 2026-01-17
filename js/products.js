@@ -35,6 +35,7 @@ class ProductManager {
                 "name": "Kalung Liontin Rose Gold",
                 "category": "Perhiasan",
                 "price": 249000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/e11d48/FFF?text=Kalung+Rose+Gold",
                 "desc": "Kalung titanium anti-karat dengan liontin minimalis yang manis."
             },
@@ -43,6 +44,7 @@ class ProductManager {
                 "name": "Tas Selempang Mini Quilted",
                 "category": "Tas",
                 "price": 185000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/db2777/FFF?text=Tas+Mini",
                 "desc": "Tas kulit sintetis premium dengan motif jahitan wajik yang elegan."
             },
@@ -51,6 +53,7 @@ class ProductManager {
                 "name": "Anting Mutiara Korea",
                 "category": "Perhiasan",
                 "price": 45000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/f472b6/FFF?text=Anting+Mutiara",
                 "desc": "Anting stud dengan aksen mutiara, cocok untuk pesta maupun harian."
             },
@@ -59,6 +62,7 @@ class ProductManager {
                 "name": "Jam Tangan Strap Kulit",
                 "category": "Jam Tangan",
                 "price": 320000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/fbbf24/FFF?text=Jam+Wanita",
                 "desc": "Dial diameter kecil 3cm dengan strap kulit coklat vintage."
             },
@@ -67,6 +71,7 @@ class ProductManager {
                 "name": "Jepit Rambut Pita Velvet",
                 "category": "Hair Accessories",
                 "price": 25000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/be185d/FFF?text=Pita+Velvet",
                 "desc": "Jepit rambut besar (jedai) dengan hiasan pita kain bludru mewah."
             },
@@ -75,6 +80,7 @@ class ProductManager {
                 "name": "Cincin Stackable Silver",
                 "category": "Perhiasan",
                 "price": 89000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/94a3b8/FFF?text=Cincin+Silver",
                 "desc": "Set isi 3 cincin tipis yang bisa dipakai menumpuk atau terpisah."
             },
@@ -83,6 +89,7 @@ class ProductManager {
                 "name": "Scarf Sutra Motif Floral",
                 "category": "Syal",
                 "price": 115000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/a855f7/FFF?text=Scarf+Floral",
                 "desc": "Bahan lembut dan dingin, bisa dijadikan hijab atau aksesoris leher."
             },
@@ -91,6 +98,7 @@ class ProductManager {
                 "name": "Kacamata Cat Eye Modern",
                 "category": "Kacamata",
                 "price": 150000,
+                "stock": 20,
                 "image": "https://placehold.co/400x300/111827/FFF?text=Kacamata+CatEye",
                 "desc": "Frame runcing yang memberikan kesan wajah lebih tirus dan stylish."
             }

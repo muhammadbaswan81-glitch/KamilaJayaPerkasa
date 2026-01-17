@@ -37,6 +37,16 @@ class CartManager {
             return false;
         }
 
+        // Cek stok yang tersedia
+        const existingItem = this.cart.find(item => item.id === productId);
+        const currentQty = existingItem ? existingItem.quantity : 0;
+        const requestedQty = currentQty + quantity;
+
+        if (requestedQty > product.stock) {
+            showNotification(`Stok tidak mencukupi. Sisa stok: ${product.stock}`, 'error');
+            return false;
+        }
+
         const existingItemIndex = this.cart.findIndex(item => item.id === productId);
 
         if (existingItemIndex !== -1) {
@@ -78,6 +88,13 @@ class CartManager {
         if (index !== -1) {
             if (quantity <= 0) {
                 return this.removeFromCart(productId);
+            }
+
+            // Cek stok
+            const product = productManager.getProductById(productId);
+            if (product && quantity > product.stock) {
+                showNotification(`Stok tidak mencukupi. Maksimal: ${product.stock}`, 'error');
+                return this.cart[index]; // Return existing item without change
             }
 
             this.cart[index].quantity = quantity;

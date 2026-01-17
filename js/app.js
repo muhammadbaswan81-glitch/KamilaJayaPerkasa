@@ -116,16 +116,28 @@ class App {
     }
 
     createProductCard(product) {
+        const isOutOfStock = product.stock <= 0;
+        const buttonDisabled = isOutOfStock ? 'disabled' : '';
+        const buttonText = isOutOfStock ? 'Stok Habis' : '<i class="fas fa-cart-plus"></i> Tambah ke Keranjang';
+        const buttonClass = isOutOfStock ? 'btn btn-secondary' : 'btn btn-primary add-to-cart';
+        const badge = isOutOfStock ? '<div class="product-badge badge-error">Habis</div>' : '';
+
         return `
             <div class="product-card">
-                <img src="${product.image}" alt="${product.name}" class="product-image">
+                <div class="product-image-container" style="position: relative;">
+                    ${badge}
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                </div>
                 <div class="product-info">
                     <span class="product-category">${product.category}</span>
                     <h3 class="product-name">${product.name}</h3>
                     <p class="product-desc">${product.desc}</p>
-                    <div class="product-price">${formatRupiah(product.price)}</div>
-                    <button class="btn btn-primary add-to-cart" data-id="${product.id}">
-                        <i class="fas fa-cart-plus"></i> Tambah ke Keranjang
+                    <div class="product-meta">
+                        <div class="product-price">${formatRupiah(product.price)}</div>
+                        <div class="product-stock" style="font-size: 0.8rem; color: #666;">Stok: ${product.stock}</div>
+                    </div>
+                    <button class="${buttonClass}" data-id="${product.id}" ${buttonDisabled}>
+                        ${buttonText}
                     </button>
                 </div>
             </div>
@@ -323,6 +335,7 @@ class App {
                                 <th>Nama Produk</th>
                                 <th>Kategori</th>
                                 <th>Harga</th>
+                                <th>Stok</th>
                                 <th>Deskripsi</th>
                                 <th>Aksi</th>
                             </tr>
