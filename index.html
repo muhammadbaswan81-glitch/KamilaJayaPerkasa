@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamila Jaya Perkasa - Toko Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo" data-page="home">
+                <i class="fas fa-gem logo-icon"></i>
+                <h1>Kamila Jaya Perkasa</h1>
+            </a>
+
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-page="home"><i class="fas fa-home nav-icon"></i>
+                            Beranda</a></li>
+                    <li><a href="#" class="nav-link" data-page="products"><i class="fas fa-shopping-bag nav-icon"></i>
+                            Produk</a></li>
+                    <li><a href="#" class="nav-link" data-page="cart">
+                            <i class="fas fa-shopping-cart nav-icon"></i> Keranjang
+                            <span class="cart-badge" id="cart-count">0</span>
+                        </a></li>
+                    <li id="login-nav"><a href="#" class="nav-link" data-page="login"><i
+                                class="fas fa-sign-in-alt nav-icon"></i> Login Owner</a></li>
+                    <li id="dashboard-nav" style="display: none;"><a href="#" class="nav-link" data-page="dashboard"><i
+                                class="fas fa-chart-line nav-icon"></i> Dashboard</a></li>
+                    <li id="logout-nav" style="display: none;">
+                        <button class="logout-btn" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" id="main-content">
+        <!-- Halaman akan dimuat secara dinamis -->
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Kamila Jaya Perkasa</h3>
+                    <p>Toko aksesoris fashion wanita terpercaya dengan produk berkualitas dan harga terjangkau.</p>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/noni_han96?igsh=bXpydzB3bmQ1M2h0" target="_blank"><i
+                                class="fab fa-instagram"></i></a>
+                        <a href="https://www.facebook.com/share/162sVu915A/" target="_blank"><i
+                                class="fab fa-facebook"></i></a>
+                        <a href="https://www.tiktok.com/@kimbunie_13?_r=1&_t=ZS-939NmJTGgzs" target="_blank"><i
+                                class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/6285246982655" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Link Cepat</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" data-page="home">Beranda</a></li>
+                        <li><a href="#" data-page="products">Produk</a></li>
+                        <li><a href="#" data-page="cart">Keranjang</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Kontak Kami</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Jl. Fashion No. 123, Jakarta</p>
+                    <p><i class="fas fa-phone"></i> +62 852-4698-2655</p>
+                    <p><i class="fas fa-envelope"></i> rabbanimuhammad39@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="copyright">
+                <p>&copy; 2026 Kamila Jaya Perkasa. Hak Cipta Dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal untuk Tambah/Edit Produk -->
+    <div class="modal" id="product-modal">
+        <!-- Konten modal akan dimuat dinamis -->
+    </div>
+
+    <!-- Notifikasi -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/whatsapp.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

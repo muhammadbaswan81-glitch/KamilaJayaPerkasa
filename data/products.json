@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "name": "Semen Tiga Roda",
+        "price": 60000,
+        "description": "Semen berkualitas tinggi untuk bangunan kokoh.",
+        "image": "assets/uploads/semen.jpg"
+    },
+    {
+        "id": 2,
+        "name": "Pasir Beton",
+        "price": 300000,
+        "description": "Pasir beton per pick-up.",
+        "image": "assets/uploads/pasir.jpg"
+    }
+]
