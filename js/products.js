@@ -160,6 +160,25 @@ class ProductManager {
         return null;
     }
 
+    reduceStock(id, quantity) {
+        const index = this.products.findIndex(product => product.id === id);
+
+        if (index !== -1) {
+            const currentStock = this.products[index].stock || 0;
+            const newStock = Math.max(0, currentStock - quantity);
+
+            this.products[index] = {
+                ...this.products[index],
+                stock: newStock,
+                updatedAt: new Date().toISOString()
+            };
+
+            this.saveProducts();
+            return this.products[index];
+        }
+        return null;
+    }
+
     deleteProduct(id) {
         const index = this.products.findIndex(product => product.id === id);
 

@@ -41,7 +41,13 @@ class WhatsAppManager {
         // Open WhatsApp
         window.open(whatsappUrl, '_blank');
 
-        // Kosongkan keranjang setelah checkout
+        // Kurangi stok dan kosongkan keranjang
+        if (window.ProductManager) {
+            cartItems.forEach(item => {
+                productManager.reduceStock(item.id, item.quantity);
+            });
+        }
+
         cartManager.clearCart();
 
         showNotification('Pesanan terkirim! Harap SCREENSHOT halaman ini dan kirim ke WhatsApp sebagai detail pesanan.', 'success');
