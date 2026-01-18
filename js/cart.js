@@ -300,8 +300,14 @@ class CartManager {
                             const subtotal = await this.getSubtotal();
                             // items payload has price, quantity, product_id. We need name.
                             // Better resolve full items info or just use what we have.
-                            // Let's use getCartItems() which is robust.
                             const resolvedItems = await this.getCartItems();
+
+                            // Reduce Stock for each item
+                            if (window.ProductManager) {
+                                for (const item of resolvedItems) {
+                                    await productManager.reduceStock(item.id, item.quantity);
+                                }
+                            }
 
                             const message = window.WhatsAppManager.formatWhatsAppMessage(
                                 resolvedItems,

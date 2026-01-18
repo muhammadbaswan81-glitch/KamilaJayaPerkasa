@@ -289,21 +289,32 @@ class ProductManager {
         }
     }
 
-    reduceStock(id, quantity) {
+    async reduceStock(id, quantity) {
         const index = this.products.findIndex(product => product.id === id);
 
         if (index !== -1) {
-            const currentStock = this.products[index].stock || 0;
+            const product = this.products[index];
+            const currentStock = product.stock || 0;
             const newStock = Math.max(0, currentStock - quantity);
 
-            this.products[index] = {
-                ...this.products[index],
-                stock: newStock,
-                updatedAt: new Date().toISOString()
+            // Update via API
+            // Reusing updateProduct logic which handles token and headers
+            // We need to pass all product fields to updateProduct as PUT usually replaces
+            const productData = {
+                name: product.name,
+                category: product.category,
+                price: product.price,
+                stock: newStock, // The changed field
+                image: product.image,
+                desc: product.desc
             };
 
-            this.saveProducts();
-            return this.products[index];
+            const updatedProduct = await this.updateProduct(id, productData);
+
+            if (updatedProduct) {
+                console.log(`Stock reduced for ${id}. New stock: ${newStock}`);
+                return updatedProduct;
+            }
         }
         return null;
     }

@@ -41,13 +41,25 @@ class DashboardManager {
         this.renderOrdersTable();
     }
 
-    renderStats() {
-        if (!window.ProductManager || !window.CartManager) return;
+    async renderStats() {
+        if (!window.ProductManager || !window.OrderManager) return;
 
-        const products = productManager.getAllProducts();
+        const products = productManager.getAllProducts(); // Assuming filtered/cached, or we can fetch. Usually products are loaded.
         const totalProducts = products.length;
-        const totalSales = cartManager.getTotalItems();
-        const totalRevenue = cartManager.getSubtotal();
+
+        // Fetch accurate orders
+        const orders = await orderManager.getAllOrders();
+
+        // Calculate Sales (Total Orders count)
+        const totalSales = orders.length;
+
+        // Calculate Revenue (Sum of total_amount, excluding cancelled)
+        const totalRevenue = orders.reduce((sum, order) => {
+            if (order.status !== 'cancelled') {
+                return sum + parseFloat(order.total_amount || 0);
+            }
+            return sum;
+        }, 0);
 
         const statProducts = document.getElementById('stat-products');
         const statSales = document.getElementById('stat-sales');
@@ -130,6 +142,26 @@ class DashboardManager {
     async viewOrderDetail(orderId) {
         const order = await orderManager.getOrderById(orderId);
         if (order) {
+            // Populate product names if missing
+            if (window.ProductManager) {
+                // We use Promise.all to await all product lookups
+                await Promise.all(order.items.map(async (item) => {
+                    // Check if name is missing or invalid
+                    if (!item.product_name || item.product_name === 'null' || item.product_name === 'Unknown Product') {
+                        // Ensure we have a valid ID to lookup
+                        // database has 'product_id', ensure we fallback to 'id' if mismatch
+                        const rawId = item.product_id || item.id;
+                        const productId = parseInt(rawId);
+
+                        if (!isNaN(productId)) {
+                            const product = await productManager.getProductById(productId);
+                            item.product_name = product ? product.name : 'Unknown Product';
+                        } else {
+                            item.product_name = 'Unknown Product (Invalid ID)';
+                        }
+                    }
+                }));
+            }
             this.openOrderModal(order);
         } else {
             showNotification('Gagal mengambil detail pesanan', 'error');
