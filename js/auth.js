@@ -28,21 +28,44 @@ class AuthManager {
         return loggedIn;
     }
 
-    login(username, password) {
-        if (username === this.ownerCredentials.username &&
-            password === this.ownerCredentials.password) {
-            this.isLoggedIn = true;
-            saveToLocalStorage('fashionacc_loggedin', 'true');
-            this.showDashboardNav();
-            showNotification('Login berhasil!', 'success');
-            return true;
+    async login(username, password) {
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Store token explicitly
+                if (data.token) {
+                    saveToLocalStorage('fashionacc_token', data.token);
+                }
+
+                this.isLoggedIn = true;
+                saveToLocalStorage('fashionacc_loggedin', 'true');
+                this.showDashboardNav();
+                showNotification('Login berhasil!', 'success');
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            // Fallback for demo/offline logic if needed, but for "Integrate API" task we rely on API.
+            // If offline, maybe check hardcoded credential as fallback? 
+            // For now, let's strictly consume API as requested.
+            return false;
         }
-        return false;
     }
 
     logout() {
         this.isLoggedIn = false;
         removeFromLocalStorage('fashionacc_loggedin');
+        removeFromLocalStorage('fashionacc_token');
         this.hideDashboardNav();
         showNotification('Anda telah logout', 'info');
     }
@@ -87,7 +110,7 @@ class AuthManager {
         }
     }
 
-    handleLoginSubmit() {
+    async handleLoginSubmit() {
         const username = document.getElementById('username')?.value;
         const password = document.getElementById('password')?.value;
         const errorElement = document.getElementById('login-error');
@@ -97,7 +120,9 @@ class AuthManager {
             return;
         }
 
-        if (this.login(username, password)) {
+        const success = await this.login(username, password);
+
+        if (success) {
             if (errorElement) errorElement.textContent = '';
             if (window.App) window.App.loadPage('dashboard');
         } else {

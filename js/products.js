@@ -10,19 +10,46 @@ class ProductManager {
         this.loadProducts();
     }
 
-    loadProducts() {
-        // Coba load dari localStorage
-        const savedProducts = getFromLocalStorage('fashionacc_products');
+    async loadProducts() {
+        try {
+            const response = await fetch('http://localhost:5000/api/products');
+            if (!response.ok) throw new Error('Network response was not ok');
 
-        if (savedProducts && savedProducts.length > 0) {
-            this.products = savedProducts;
-            // Cari ID tertinggi
-            const maxId = Math.max(...this.products.map(p => p.id));
-            this.currentProductId = maxId + 1;
-        } else {
-            // Gunakan data awal
-            this.products = this.getInitialProducts();
-            this.saveProducts();
+            const apiProducts = await response.json();
+
+            // Map API data (database columns) to frontend structure if necessary
+            // Database has 'description', frontend uses 'desc'
+            this.products = apiProducts.map(p => ({
+                ...p,
+                desc: p.description || p.desc,
+                // Ensure numbers are numbers
+                id: parseInt(p.id),
+                price: parseFloat(p.price),
+                stock: parseInt(p.stock)
+            }));
+
+            // Update currentProductId to appropriate high number based on IDs
+            if (this.products.length > 0) {
+                const maxId = Math.max(...this.products.map(p => p.id));
+                this.currentProductId = maxId + 1;
+            }
+
+            this.saveProducts(); // Sync to local storage for redundancy
+            console.log('Products loaded from API:', this.products.length);
+        } catch (error) {
+            console.error('Failed to load from API, falling back to local storage:', error);
+
+            // Fallback logic
+            const savedProducts = getFromLocalStorage('fashionacc_products');
+
+            if (savedProducts && savedProducts.length > 0) {
+                this.products = savedProducts;
+                const maxId = Math.max(...this.products.map(p => p.id));
+                this.currentProductId = maxId + 1;
+            } else {
+                this.products = this.getInitialProducts();
+                this.saveProducts();
+            }
         }
 
         return this.products;
@@ -113,8 +140,41 @@ class ProductManager {
         return this.products;
     }
 
-    getProductById(id) {
-        return this.products.find(product => product.id === id);
+    async getProductById(id) {
+        try {
+            // Check local cache first for immediate feedback (optional, but good for UX)
+            // let product = this.products.find(p => p.id === id);
+
+            // Fetch fresh data from API
+            const response = await fetch(`http://localhost:5000/api/products/${id}`);
+            if (!response.ok) throw new Error('Product not found in API');
+
+            const apiProduct = await response.json();
+
+            // Map API data
+            const product = {
+                ...apiProduct,
+                desc: apiProduct.description || apiProduct.desc || '',
+                id: parseInt(apiProduct.id),
+                price: parseFloat(apiProduct.price),
+                stock: parseInt(apiProduct.stock)
+            };
+
+            // Update local cache
+            const index = this.products.findIndex(p => p.id === product.id);
+            if (index !== -1) {
+                this.products[index] = product;
+            } else {
+                this.products.push(product);
+            }
+            this.saveProducts();
+
+            return product;
+        } catch (error) {
+            console.warn(`Failed to fetch product ${id} from API, using local cache. Error:`, error);
+            // Fallback to local cache
+            return this.products.find(p => p.id === id);
+        }
     }
 
     getProductsByCategory(category) {
@@ -131,33 +191,102 @@ class ProductManager {
         );
     }
 
-    addProduct(productData) {
-        const newProduct = {
-            id: this.currentProductId++,
-            ...productData,
-            createdAt: new Date().toISOString()
-        };
+    async addProduct(productData) {
+        try {
+            const token = getFromLocalStorage('fashionacc_token');
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
 
-        this.products.push(newProduct);
-        this.saveProducts();
-        return newProduct;
-    }
+            const response = await fetch('http://localhost:5000/api/products', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    name: productData.name,
+                    category: productData.category,
+                    price: productData.price,
+                    stock: productData.stock,
+                    image: productData.image,
+                    description: productData.desc // Map frontend 'desc' to backend 'description'
+                })
+            });
 
-    updateProduct(id, productData) {
-        const index = this.products.findIndex(product => product.id === id);
+            if (!response.ok) throw new Error('Failed to create product');
 
-        if (index !== -1) {
-            this.products[index] = {
-                ...this.products[index],
-                ...productData,
-                updatedAt: new Date().toISOString()
+            const newApiProduct = await response.json();
+
+            // Map back to frontend structure
+            const newProduct = {
+                ...newApiProduct,
+                desc: newApiProduct.description || newApiProduct.desc,
+                id: parseInt(newApiProduct.id),
+                price: parseFloat(newApiProduct.price),
+                stock: parseInt(newApiProduct.stock)
             };
 
+            this.products.push(newProduct);
             this.saveProducts();
-            return this.products[index];
+            return newProduct;
+        } catch (error) {
+            console.error('Error adding product:', error);
+            // Optional: fallback to local only if offline? 
+            // For "core system" usually we want to enforce server sync.
+            // Returning null or throwing error to let UI know.
+            return null;
         }
+    }
 
-        return null;
+    async updateProduct(id, productData) {
+        try {
+            const token = getFromLocalStorage('fashionacc_token');
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({
+                    name: productData.name,
+                    category: productData.category,
+                    price: productData.price,
+                    stock: productData.stock,
+                    image: productData.image,
+                    description: productData.desc // Map frontend 'desc' to backend 'description'
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to update product');
+
+            const updatedApiProduct = await response.json();
+
+            const index = this.products.findIndex(product => product.id === id);
+
+            if (index !== -1) {
+                // Map back to frontend structure
+                this.products[index] = {
+                    ...updatedApiProduct,
+                    desc: updatedApiProduct.description || updatedApiProduct.desc,
+                    id: parseInt(updatedApiProduct.id),
+                    price: parseFloat(updatedApiProduct.price),
+                    stock: parseInt(updatedApiProduct.stock),
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.saveProducts();
+                return this.products[index];
+            }
+            return null;
+        } catch (error) {
+            console.error('Error updating product:', error);
+            return null;
+        }
     }
 
     reduceStock(id, quantity) {
@@ -179,16 +308,33 @@ class ProductManager {
         return null;
     }
 
-    deleteProduct(id) {
-        const index = this.products.findIndex(product => product.id === id);
+    async deleteProduct(id) {
+        try {
+            const token = getFromLocalStorage('fashionacc_token');
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
 
-        if (index !== -1) {
-            const deletedProduct = this.products.splice(index, 1)[0];
-            this.saveProducts();
-            return deletedProduct;
+            const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+                method: 'DELETE',
+                headers: headers
+            });
+
+            if (!response.ok) throw new Error('Failed to delete product');
+
+            const index = this.products.findIndex(product => product.id === id);
+
+            if (index !== -1) {
+                const deletedProduct = this.products.splice(index, 1)[0];
+                this.saveProducts();
+                return deletedProduct;
+            }
+            return null;
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            return null;
         }
-
-        return null;
     }
 
     getCategories() {

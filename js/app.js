@@ -5,9 +5,12 @@ class App {
         this.init();
     }
 
-    init() {
+    async init() {
         // Load data
-        if (window.ProductManager) productManager.loadProducts();
+        if (window.ProductManager) {
+            await productManager.loadProducts();
+        }
+
         if (window.CartManager) cartManager.loadCart();
         if (window.AuthManager) authManager.checkLoginStatus();
 
@@ -37,13 +40,13 @@ class App {
         });
 
         // Add to cart buttons (delegated)
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', async (e) => {
             if (e.target.matches('.add-to-cart') || e.target.closest('.add-to-cart')) {
                 const button = e.target.matches('.add-to-cart') ? e.target : e.target.closest('.add-to-cart');
                 const productId = parseInt(button.dataset.id);
 
                 if (productId && window.CartManager) {
-                    cartManager.addToCart(productId);
+                    await cartManager.addToCart(productId);
                 }
             }
         });
@@ -327,6 +330,7 @@ class App {
                 </div>
 
                 <div class="products-table-container">
+                    <h3>Daftar Produk</h3>
                     <table>
                         <thead>
                             <tr>
@@ -342,6 +346,25 @@ class App {
                         </thead>
                         <tbody id="dashboard-products">
                             <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="orders-table-container" style="margin-top: 2rem;">
+                    <h3>Daftar Pesanan</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Order</th>
+                                <th>Tanggal</th>
+                                <th>Pelanggan</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Item</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-orders">
+                            <!-- Orders will be loaded here -->
                         </tbody>
                     </table>
                 </div>

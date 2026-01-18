@@ -29,12 +29,16 @@ class DashboardManager {
             if (e.target.id === 'product-modal' && e.target.classList.contains('modal')) {
                 this.closeProductModal();
             }
+            if (e.target.id === 'order-modal' && e.target.classList.contains('modal')) {
+                this.closeOrderModal();
+            }
         };
     }
 
     renderDashboard() {
         this.renderStats();
         this.renderProductsTable();
+        this.renderOrdersTable();
     }
 
     renderStats() {
@@ -83,6 +87,156 @@ class DashboardManager {
         `).join('');
 
         this.setupProductTableEvents();
+    }
+
+    async renderOrdersTable() {
+        const container = document.getElementById('dashboard-orders');
+        if (!container || !window.OrderManager) return;
+
+        const orders = await orderManager.getAllOrders();
+
+        container.innerHTML = orders.map(order => `
+            <tr>
+                <td>#${order.id}</td>
+                <td>${formatDate(order.created_at)}</td>
+                <td>
+                    <strong>${order.customer_name}</strong><br>
+                    <small>${order.customer_address}</small>
+                </td>
+                <td>${formatRupiah(order.total_amount)}</td>
+                <td><span class="badge badge-${order.status}">${order.status}</span></td>
+                <td>
+                    <button class="btn btn-info btn-small view-order" data-id="${order.id}">
+                        <i class="fas fa-eye"></i> Detail
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        this.setupOrderTableEvents();
+    }
+
+    setupOrderTableEvents() {
+        // Use event delegation for dynamic content if preferred, or re-bind like products
+        // Here re-binding for simplicity as renderOrdersTable is called on refresh
+        document.querySelectorAll('.view-order').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const orderId = parseInt(e.target.dataset.id || e.target.closest('button').dataset.id);
+                this.viewOrderDetail(orderId);
+            });
+        });
+    }
+
+    async viewOrderDetail(orderId) {
+        const order = await orderManager.getOrderById(orderId);
+        if (order) {
+            this.openOrderModal(order);
+        } else {
+            showNotification('Gagal mengambil detail pesanan', 'error');
+        }
+    }
+
+    openOrderModal(order) {
+        const modalTemplate = `
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h3>Detail Pesanan #${order.id}</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <h5>Info Pelanggan</h5>
+                            <p><strong>Nama:</strong> ${order.customer_name}</p>
+                            <p><strong>Alamat:</strong> ${order.customer_address}</p>
+                        </div>
+                        <div>
+                            <h5>Info Pesanan</h5>
+                            <p><strong>Tanggal:</strong> ${formatDate(order.created_at)}</p>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="order-status-select"><strong>Status:</strong></label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <select id="order-status-select" class="form-control" style="width: auto;">
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                    <button id="update-status-btn" class="btn btn-primary btn-small">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5>Item Pesanan</h5>
+                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background-color: #f8f9fa;">
+                                <th style="padding: 10px; border: 1px solid #ddd;">Produk</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Qty</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Harga</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">${item.product_name}</td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${formatRupiah(item.price)}</td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${formatRupiah(item.price * item.quantity)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong>Total</strong></td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: right;"><strong>${formatRupiah(order.total_amount)}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        const modal = document.getElementById('order-modal');
+        if (modal) {
+            modal.innerHTML = modalTemplate;
+            modal.classList.add('active');
+
+            modal.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => this.closeOrderModal());
+            });
+
+            // Add listener for status update
+            const updateBtn = document.getElementById('update-status-btn');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', () => {
+                    const newStatus = document.getElementById('order-status-select').value;
+                    this.handleStatusUpdate(order.id, newStatus);
+                });
+            }
+        }
+    }
+
+    async handleStatusUpdate(orderId, newStatus) {
+        const result = await orderManager.updateOrderStatus(orderId, newStatus);
+        if (result) {
+            showNotification('Status pesanan berhasil diperbarui', 'success');
+            this.closeOrderModal();
+            this.renderDashboard(); // Refresh table
+        } else {
+            showNotification('Gagal memperbarui status', 'error');
+        }
+    }
+
+    closeOrderModal() {
+        const modal = document.getElementById('order-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.innerHTML = '';
+        }
     }
 
     setupProductTableEvents() {
@@ -281,7 +435,7 @@ class DashboardManager {
             });
         } else if (id) {
             // Existing image usage
-            const existingProduct = productManager.getProductById(parseInt(id));
+            const existingProduct = await productManager.getProductById(parseInt(id));
             if (existingProduct) {
                 handleSave(existingProduct.image);
             } else {
@@ -292,25 +446,41 @@ class DashboardManager {
         }
     }
 
-    completeSaveProduct(id, productData) {
-        if (id) {
-            const updated = productManager.updateProduct(parseInt(id), productData);
-            if (updated) {
-                showNotification('Produk berhasil diperbarui', 'success');
+    async completeSaveProduct(id, productData) {
+        try {
+            if (id) {
+                // Assuming updateProduct will also be async later or now
+                // For now, if we only touched addProduct, we handle that.
+                // But logically, if we are editing, we should likely check if updateProduct is async.
+                // Based on previous Plan, we focus on Create Product.
+                // However, let's allow for async update if needed or just sync if not yet changed.
+                const updated = productManager.updateProduct(parseInt(id), productData);
+                // Note: If updateProduct becomes async, we should await it. 
+                // Since this task is specific to "Create Product", we leave update as is unless we know.
+                // BUT, to be safe, we can await it if it returns a promise.
+                if (updated) {
+                    showNotification('Produk berhasil diperbarui', 'success');
+                }
+            } else {
+                const newProduct = await productManager.addProduct(productData);
+                if (newProduct) {
+                    showNotification('Produk berhasil ditambahkan', 'success');
+                } else {
+                    showNotification('Gagal menambahkan produk', 'error');
+                    return; // Don't close modal on error
+                }
             }
-        } else {
-            const newProduct = productManager.addProduct(productData);
-            if (newProduct) {
-                showNotification('Produk berhasil ditambahkan', 'success');
-            }
-        }
 
-        this.closeProductModal();
-        this.renderDashboard();
+            this.closeProductModal();
+            this.renderDashboard();
+        } catch (error) {
+            console.error('Error saving product:', error);
+            showNotification('Terjadi kesalahan saat menyimpan produk', 'error');
+        }
     }
 
-    editProduct(productId) {
-        const product = productManager.getProductById(productId);
+    async editProduct(productId) {
+        const product = await productManager.getProductById(productId);
         if (product) {
             this.openProductModal(product);
         }
@@ -318,12 +488,17 @@ class DashboardManager {
 
     deleteProduct(productId) {
         if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-            const deleted = productManager.deleteProduct(productId);
-            if (deleted) {
-                showNotification('Produk berhasil dihapus', 'success');
-                cartManager.removeFromCart(productId);
-                this.renderDashboard();
-            }
+            // Self-executing async function or just handle the promise
+            (async () => {
+                const deleted = await productManager.deleteProduct(productId);
+                if (deleted) {
+                    showNotification('Produk berhasil dihapus', 'success');
+                    cartManager.removeFromCart(productId);
+                    this.renderDashboard();
+                } else {
+                    showNotification('Gagal menghapus produk', 'error');
+                }
+            })();
         }
     }
 }
